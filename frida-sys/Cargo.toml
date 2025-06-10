@@ -11,7 +11,7 @@ description.workspace = true
 auto-download = ["frida-build"]
 
 [build-dependencies]
-bindgen = "0.71.1"
+bindgen = "0.72.0"
 frida-build = { path = "../frida-build", optional = true, version = "0.16.10" }
 
 [badges]

@@ -1,0 +1,7 @@
+[target.aarch64-linux-android]
+linker = "D:/androidSdk/ndk/25.0.8775105/toolchains/llvm/prebuilt/windows-x86_64/bin/aarch64-linux-android30-clang.cmd"
+ar = "D:/androidSdk/ndk/25.0.8775105/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-ar.exe"
+
+[build]
+target = "aarch64-linux-android"
+rustflags = ["-l","clang_rt.builtins-aarch64","-L","D:/androidSdk/ndk/25.0.8775105/toolchains/llvm/prebuilt/windows-x86_64/lib64/clang/14.0.6/lib/baremetal"]
