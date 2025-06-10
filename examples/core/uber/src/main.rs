@@ -9,7 +9,7 @@ use base64::{engine::general_purpose, Engine};
 use serde::Serialize;
 
 static FRIDA: LazyLock<Frida> = LazyLock::new(|| unsafe { Frida::obtain() });
-static collect_data: LazyLock<Mutex<CollectData>> = LazyLock::new(||{Mutex::new(CollectData::default())});
+static COLLECT_DATA: LazyLock<Mutex<CollectData>> = LazyLock::new(||{Mutex::new(CollectData::default())});
 
 #[derive(Default,Serialize)]
 struct CollectData {
@@ -98,10 +98,10 @@ impl ScriptHandler for Handler {
                let raw_data = log.payload.split(' ').collect::<Vec<&str>>();
                if raw_data[0].to_string() == "url" {
                    println!("[*] collect url");
-                   collect_data.lock().unwrap().register_url = Some(raw_data[1].to_string());
+                   COLLECT_DATA.lock().unwrap().register_url = Some(raw_data[1].to_string());
                }else if raw_data[0].to_string() == "verifier" {
                    println!("[*] collect verifier");
-                   collect_data.lock().unwrap().code_verifier = Some(raw_data[1].to_string());
+                   COLLECT_DATA.lock().unwrap().code_verifier = Some(raw_data[1].to_string());
                }
 
            },
@@ -110,8 +110,8 @@ impl ScriptHandler for Handler {
                println!("{:?}", message)
            }
        }
-        if collect_data.lock().unwrap().is_complete() {
-            let json = serde_json::to_string(collect_data.deref()).unwrap();
+        if COLLECT_DATA.lock().unwrap().is_complete() {
+            let json = serde_json::to_string(COLLECT_DATA.deref()).unwrap();
             println!("JSON string: {}", json);
             let base64_encoded = general_purpose::STANDARD.encode(json);
             println!("Base64 encoded: {}", base64_encoded);
