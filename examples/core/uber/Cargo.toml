@@ -1,7 +1,7 @@
 [package]
 name = "uber"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 authors = ["wwb"]
 publish = false
 
@@ -12,3 +12,5 @@ serde_json = "1.0.140"
 base64 = "0.22.1"
 serde = { version = "1.0.219", features = ["derive"] }
 uuid = {version = "1.17.0",features = ["v4","v3"]}
+rand = "0.9.1"
+hex = "0.4.3"
