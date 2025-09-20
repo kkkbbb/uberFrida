@@ -1,6 +1,7 @@
 #![cfg(all(target_os = "android", target_arch = "aarch64"))]
 #![recursion_limit = "256"]
 
+use std::ops::Not;
 use frida::{DeviceManager, Frida, Message, ScriptHandler, ScriptOption, ScriptRuntime, SpawnOptions};
 use std::sync::{LazyLock, Mutex};
 use std::thread;
@@ -12,19 +13,18 @@ use uuid::Uuid;
 use rand::{random, Rng};
 use hex;
 use reqwest::Url;
+use android_properties;
+use reqwest::header::USER_AGENT;
 
 static FRIDA: LazyLock<Frida> = LazyLock::new(|| unsafe { Frida::obtain() });
 static COLLECT_DATA: LazyLock<Mutex<CollectData>> = LazyLock::new(||{Mutex::new(CollectData::default())});
+static IS_SUCCESS: LazyLock<Mutex<bool>> = LazyLock::new(||{Mutex::new(false)});
 
 #[derive(Default,Serialize)]
 struct CollectData {
     register_url: Option<String>,
     code_verifier: Option<String>,
 }
-
-
-
-
 
 impl CollectData {
     fn is_complete(&self) -> bool {
@@ -87,7 +87,13 @@ fn main() {
         script.load().unwrap();
         println!("[*] Script loaded");
 
-        thread::sleep(Duration::from_secs(20));
+        let mut times = 0;
+        while IS_SUCCESS.lock().unwrap().not() {
+            thread::sleep(Duration::from_millis(500));
+            if times > 40 { break; }
+            times+=1;
+        }
+        
         script.unload().unwrap();
         println!("[*] Script unloaded");
 
@@ -151,10 +157,17 @@ impl ScriptHandler for Handler {
             let base64_encoded = general_purpose::STANDARD.encode(pack_data.to_string());
             println!("Base64 encoded: {}", base64_encoded);
             let client = reqwest::blocking::Client::new();
-            let params = [("upbase64", base64_encoded)];
-            let response = client.get("http://8.138.196.204:8029/uberapi").query(&params).send().unwrap();
 
-            println!("[*] Response: {:?}", response);
+            let cip_response = client.get("http://cip.cc").header(USER_AGENT, "curl").send().unwrap();
+            let myip  = cip_response.text().unwrap().lines().next().unwrap().to_string();
+
+            let mut bianhao = android_properties::getprop("ro.boot.pad_code").value().unwrap();
+            if bianhao.len() < 1 {bianhao="unknow".to_string();}
+            let params = json!({"myip":myip,"padCode":bianhao,"uberdata":base64_encoded});
+            println!("{}", params);
+            // let response = client.post("https://api.chujingservice.com/metaserver/api/uber/uploadUberData").json(&params).send().unwrap();
+            // println!("[*] Response: {:?}", response);
+            *IS_SUCCESS.lock().unwrap() = true;
         }
     }
 }

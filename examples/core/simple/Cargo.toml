@@ -1,0 +1,9 @@
+[package]
+name = "simple"
+version = "0.1.0"
+edition = "2021"
+authors = ["wwb"]
+publish = false
+
+[dependencies]
+frida = { path = "../../../frida" }

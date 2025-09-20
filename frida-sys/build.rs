@@ -48,7 +48,7 @@ fn main() {
     let bindings = bindings.clang_arg(format!("-I{include_dir}"));
 
     #[cfg(not(feature = "auto-download"))]
-    let bindings = if std::env::var("DOCS_RS").is_ok() {
+    let bindings = if env::var("DOCS_RS").is_ok() {
         bindings.clang_arg("-Iinclude")
     } else {
         bindings
